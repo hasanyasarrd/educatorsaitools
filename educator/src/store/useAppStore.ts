@@ -1,6 +1,12 @@
 import { create } from 'zustand';
-import { Tool, Message, Conversation, PriceFilter, CategoryFilter } from '../types';
-import { mockTools } from '../data/tools';
+import type {
+  Tool,
+  Message,
+  Conversation,
+  PriceFilter,
+  CategoryFilter
+} from '../types';
+import { tools as mockTools } from '../data/tools';
 
 interface AppState {
   tools: Tool[];
@@ -11,7 +17,7 @@ interface AppState {
   categoryFilter: CategoryFilter;
   mainConversation: Conversation;
   toolConversations: Record<number, Conversation>;
-  
+
   setSearchTerm: (term: string) => void;
   setPriceFilter: (filter: PriceFilter) => void;
   setCategoryFilter: (filter: CategoryFilter) => void;
@@ -30,13 +36,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   priceFilter: 'all',
   categoryFilter: 'all',
   mainConversation: {
-    id: 'main',
-    messages: [{
-      id: '1',
-      type: 'bot',
-      text: 'Merhaba! Size hangi yapay zeka aracını önerebilirim? Eğitim ihtiyaçlarınızı paylaşın ve size en uygun araçları bulayım. 🤖',
-      timestamp: new Date()
-    }]
+    id: 0,
+    messages: [
+      {
+        id: 1,
+        type: 'bot',
+        text: 'Merhaba! Size hangi yapay zeka aracını önerebilirim?',
+        timestamp: new Date()
+      }
+    ]
   },
   toolConversations: {},
 
@@ -58,18 +66,20 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSelectedTool: (tool) => {
     set({ selectedTool: tool });
     if (tool && !get().toolConversations[tool.id]) {
-      set(state => ({
+      set((state) => ({
         toolConversations: {
           ...state.toolConversations,
           [tool.id]: {
-            id: `tool-${tool.id}`,
+            id: tool.id,
             toolId: tool.id,
-            messages: [{
-              id: `${tool.id}-1`,
-              type: 'bot',
-              text: `Merhaba! Ben ${tool.name} konusunda size yardımcı olacak AI asistanınızım. Bu araç hakkında sorularınızı sorabilirsiniz. 🎯`,
-              timestamp: new Date()
-            }]
+            messages: [
+              {
+                id: Date.now(),
+                type: 'bot',
+                text: `Merhaba! Ben ${tool.name} konusunda size yardımcı olacak AI asistanınızım.`,
+                timestamp: new Date()
+              }
+            ]
           }
         }
       }));
@@ -78,12 +88,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   addMainMessage: (message) => {
     const newMessage: Message = {
-      id: Date.now().toString(),
+      id: Date.now(),
       timestamp: new Date(),
       ...message
     };
-    
-    set(state => ({
+    set((state) => ({
       mainConversation: {
         ...state.mainConversation,
         messages: [...state.mainConversation.messages, newMessage]
@@ -93,12 +102,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   addToolMessage: (toolId, message) => {
     const newMessage: Message = {
-      id: Date.now().toString(),
+      id: Date.now(),
       timestamp: new Date(),
       ...message
     };
-
-    set(state => ({
+    set((state) => ({
       toolConversations: {
         ...state.toolConversations,
         [toolId]: {
@@ -110,11 +118,17 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   voteOnTool: (toolId, voteType) => {
-    set(state => ({
-      tools: state.tools.map(tool => 
-        tool.id === toolId 
-          ? { ...tool, votes: { ...tool.votes, [voteType]: tool.votes[voteType] + 1 }}
-          : tool
+    set((state) => ({
+      tools: state.tools.map((tool) =>
+          tool.id === toolId
+              ? {
+                ...tool,
+                votes: {
+                  up: tool.votes?.up ?? 0 + (voteType === 'up' ? 1 : 0),
+                  down: tool.votes?.down ?? 0 + (voteType === 'down' ? 1 : 0)
+                }
+              }
+              : tool
       )
     }));
     get().filterTools();
@@ -122,25 +136,22 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   filterTools: () => {
     const { tools, searchTerm, priceFilter, categoryFilter } = get();
-    
     let filtered = tools;
-    
+
     if (priceFilter !== 'all') {
-      filtered = filtered.filter(tool => tool.price === priceFilter);
+      filtered = filtered.filter((tool) => tool.price === priceFilter);
     }
-    
     if (categoryFilter !== 'all') {
-      filtered = filtered.filter(tool => tool.category === categoryFilter);
+      filtered = filtered.filter((tool) => tool.category === categoryFilter);
     }
-    
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(tool => 
-        tool.name.toLowerCase().includes(search) ||
-        tool.description.toLowerCase().includes(search)
+      filtered = filtered.filter(
+          (tool) =>
+              tool.name.toLowerCase().includes(search) ||
+              tool.description.toLowerCase().includes(search)
       );
     }
-    
     set({ filteredTools: filtered });
   }
 }));
