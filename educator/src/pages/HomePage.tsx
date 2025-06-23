@@ -13,18 +13,18 @@ export const HomePage: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <Header />
         <AIAssistant />
-        <FilterBar 
+        <FilterBar
           priceFilter={priceFilter}
           categoryFilter={categoryFilter}
           setPriceFilter={setPriceFilter}
           setCategoryFilter={setCategoryFilter}
         />
-        <ToolGrid 
+        <ToolGrid
           priceFilter={priceFilter}
           categoryFilter={categoryFilter}
         />
       </div>
-      
+
       <footer className="bg-black/20 backdrop-blur-md border-t border-white/10 mt-12">
         <div className="container mx-auto px-4 py-8 text-center text-white/80">
           <p>&copy; 2024 Educators AI Tools. Eğitimciler için yapay zeka araçları rehberi.</p>
